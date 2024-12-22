@@ -8,6 +8,9 @@ on:
       - store/**
       - '!store/kustomize/**'
       - '!store/DockerfileAdmin'
+  pull_request:
+    branches:
+      - main
 
 
 env:
@@ -52,7 +55,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           context: store
-          push: true
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}, ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
