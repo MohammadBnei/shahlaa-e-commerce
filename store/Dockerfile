@@ -21,7 +21,7 @@ FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app/dist .
 COPY --from=prerelease /usr/src/app/package.json .
-COPY medusa-config.js ./
+COPY medusa-config.ts ./
 ENV NODE_ENV=production
 ENV PORT=3000
 CMD ["bun", "start"]
