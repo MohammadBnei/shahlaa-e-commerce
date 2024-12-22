@@ -1,4 +1,4 @@
-const checkEnvVariables = require("./check-env-variables")
+import checkEnvVariables from "./check-env-variables.mjs"
 
 checkEnvVariables()
 
@@ -6,17 +6,19 @@ checkEnvVariables()
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
-  reactStrictMode: true,
   logging: {
     fetches: {
       fullUrl: true,
     },
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: process.env.VERCEL_ENV === "production",
   },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  experimental: {
+    taint: true,
   },
   images: {
     remotePatterns: [
@@ -40,4 +42,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+export default nextConfig

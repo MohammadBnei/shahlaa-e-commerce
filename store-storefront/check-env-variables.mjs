@@ -1,4 +1,4 @@
-const c = require("ansi-colors")
+import * as c from "ansi-colors"
 
 const requiredEnvs = [
   {
@@ -9,7 +9,7 @@ const requiredEnvs = [
   },
 ]
 
-function checkEnvVariables() {
+export default function() {
   const missingEnvs = requiredEnvs.filter(function (env) {
     return !process.env[env.key]
   })
@@ -35,5 +35,3 @@ function checkEnvVariables() {
     process.exit(1)
   }
 }
-
-module.exports = checkEnvVariables
