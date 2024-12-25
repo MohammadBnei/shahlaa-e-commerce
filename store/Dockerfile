@@ -16,11 +16,11 @@ COPY --from=install /temp/prod/ ./
 COPY . .
 ENV NODE_ENV=production
 RUN bun run build:server
+RUN cd .medusa/server && bun install
 
 FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
-COPY --from=prerelease /usr/src/app/dist .
-COPY --from=prerelease /usr/src/app/package.json .
+COPY --from=prerelease /usr/src/app/.medusa/server .
 COPY medusa-config.ts ./
 ENV NODE_ENV=production
 ENV PORT=3000

@@ -1,0 +1,6 @@
+.medusa
+README.md
+.env*
+.gitignore
+.vscode
+integration-test

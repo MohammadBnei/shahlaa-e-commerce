@@ -28,7 +28,7 @@ FROM nginx:alpine AS release
 
 RUN rm -rf /usr/share/nginx/html/*
 
-COPY --from=prerelease /usr/src/app/build /usr/share/nginx/html/
+COPY --from=prerelease /usr/src/app/.medusa/admin /usr/share/nginx/html/
 
 EXPOSE 80
 
