@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: medusa-shahlaa-admin-service
+spec:
+  selector:
+    app: medusa-shahlaa-admin # Match labels from the deployments
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 80
+  type: ClusterIP
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: shahlaa-admin-certificate
+spec:
+  commonName: shahlaa-admin.bnei.dev
+  secretName: shahlaa-admin-certificate-secret
+  dnsNames:
+    - "shahlaa-admin.bnei.dev"
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-prod
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: shahlaa-admin-server
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`shahlaa-admin.bnei.dev`)
+      services:
+        - kind: Service
+          name: medusa-shahlaa-admin-service
+          port: 3000
+  tls:
+    secretName: shahlaa-admin-certificate-secret

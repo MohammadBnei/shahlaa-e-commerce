@@ -1,4 +1,4 @@
-import * as c from "ansi-colors"
+import c from "ansi-colors"
 
 const requiredEnvs = [
   {

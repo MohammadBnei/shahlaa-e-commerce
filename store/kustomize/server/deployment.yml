@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medusa-shahlaa-server
+  annotations:
+    secrets.infisical.com/auto-reload: "true"
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: medusa-shahlaa-server
+  template:
+    metadata:
+      labels:
+        app: medusa-shahlaa-server
+    spec:
+      containers:
+        - image: store-server
+          name: medusa-shahlaa-server
+          ports:
+            - containerPort: 3000
+          resources:
+            limits:
+              cpu: 400m
+              memory: 800Mi
+          envFrom:
+            - secretRef:
+                name: managed-secret-server

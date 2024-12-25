@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medusa-shahlaa-admin
+  annotations: 
+    secrets.infisical.com/auto-reload: "true" 
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: medusa-shahlaa-admin
+  template:
+    metadata:
+      labels:
+        app: medusa-shahlaa-admin
+    spec:
+      containers:
+        - image: store-admin
+          name: medusa-shahlaa-admin
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+          envFrom:
+            - secretRef:
+                name: managed-secret-admin
