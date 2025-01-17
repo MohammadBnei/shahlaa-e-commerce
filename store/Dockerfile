@@ -15,7 +15,7 @@ WORKDIR /usr/src/app
 COPY . .
 COPY --from=dependencies /usr/src/app/node_modules ./node_modules
 RUN yarn install --frozen-lockfile
-RUN yarn build:server
+RUN yarn build
 
 FROM base AS release
 WORKDIR /usr/src/app

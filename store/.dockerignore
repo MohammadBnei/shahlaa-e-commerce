@@ -5,3 +5,6 @@ README.md
 .vscode
 integration-test
 vercel.json
+node_modules
+kustomize
+Dockerfile
