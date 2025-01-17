@@ -24,6 +24,8 @@ WORKDIR /usr/src/app
 COPY --from=dependencies /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/.medusa/server ./server
 
+COPY --from=builder /usr/src/app/package.json /usr/src/app/medusa-config.ts ./
+
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
