@@ -5,9 +5,9 @@ loadEnv(process.env.NODE_ENV || "development", process.cwd());
 module.exports = defineConfig({
   admin: {
     disable: process.env.ADMIN_ENABLED !== "true",
-    // backendUrl: process.env.BACKEND_URL,
+    backendUrl: process.env.BACKEND_URL,
     storefrontUrl: process.env.FRONTEND_URL || "http://localhost:8000",
-    // path: "/",
+    path: process.env.ADMIN_ENABLED ? "/app" : "/",
   },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
