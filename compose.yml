@@ -27,4 +27,6 @@ services:
       start_interval: 5s
       start_period: 30s
 
+  server:
+
 
