@@ -449,16 +449,12 @@ export default async function seedDemoData({ container }: ExecArgs) {
             description:
               "Minimalistic designs, neutral colors, and high-quality textures",
             image: scandinavianSimplicityImage,
-            collection_page_image: scandinavianSimplicityCollectionPageImage,
             collection_page_heading:
               "Scandinavian Simplicity: Effortless elegance, timeless comfort",
             collection_page_content: `Minimalistic designs, neutral colors, and high-quality textures. Perfect for those who seek comfort with a clean and understated aesthetic.
 
 This collection brings the essence of Scandinavian elegance to your living room.`,
             product_page_heading: "Collection Inspired Interior",
-            product_page_image: scandinavianSimplicityProductPageImage,
-            product_page_wide_image: scandinavianSimplicityProductPageWideImage,
-            product_page_cta_image: scandinavianSimplicityProductPageCtaImage,
             product_page_cta_heading:
               "The 'Name of sofa' embodies Scandinavian minimalism with clean lines and a soft, neutral palette.",
             product_page_cta_link:
@@ -472,16 +468,12 @@ This collection brings the essence of Scandinavian elegance to your living room.
             description:
               "Sophisticated and sleek, these sofas blend modern design with luxurious comfort",
             image: modernLuxeImage,
-            collection_page_image: modernLuxeCollectionPageImage,
             collection_page_heading:
               "Modern Luxe: Where modern design meets luxurious living",
             collection_page_content: `Sophisticated and sleek, these sofas blend modern design with luxurious comfort. Bold lines and premium materials create the ultimate statement pieces for any contemporary home.
 
 Elevate your space with timeless beauty.`,
             product_page_heading: "Collection Inspired Interior",
-            product_page_image: modernLuxeProductPageImage,
-            product_page_wide_image: modernLuxeProductPageWideImage,
-            product_page_cta_image: modernLuxeProductPageCtaImage,
             product_page_cta_heading:
               "The 'Name of sofa' is a masterpiece of minimalism and luxury.",
             product_page_cta_link: "See more out of ‘Modern Luxe’ collection",
@@ -494,16 +486,12 @@ Elevate your space with timeless beauty.`,
             description:
               "Infused with playful textures and vibrant patterns with eclectic vibes",
             image: bohoChicImage,
-            collection_page_image: bohoChicCollectionPageImage,
             collection_page_heading:
               "Boho Chic: Relaxed, eclectic style with a touch of free-spirited charm",
             collection_page_content: `Infused with playful textures and vibrant patterns, this collection embodies relaxed, eclectic vibes. Soft fabrics and creative designs add warmth and personality to any room.
 
 It’s comfort with a bold, carefree spirit.`,
             product_page_heading: "Collection Inspired Interior",
-            product_page_image: bohoChicProductPageImage,
-            product_page_wide_image: bohoChicProductPageWideImage,
-            product_page_cta_image: bohoChicProductPageCtaImage,
             product_page_cta_heading:
               "The 'Name of sofa' captures the essence of boho style with its relaxed, oversized form and eclectic fabric choices.",
             product_page_cta_link: "See more out of ‘Boho Chic’ collection",
@@ -516,16 +504,12 @@ It’s comfort with a bold, carefree spirit.`,
             description:
               "Elegant shapes and rich textures, traditional craftsmanship with modern comfort",
             image: timelessClassicsImage,
-            collection_page_image: timelessClassicsCollectionPageImage,
             collection_page_heading:
               "Timeless Classics: Enduring style, crafted for comfort and lasting beauty",
             collection_page_content: `Designed for those who appreciate enduring style, this collection features elegant shapes and rich textures. These sofas combine traditional craftsmanship with modern comfort.
 
 Perfect for creating a warm, inviting atmosphere that never goes out of style.`,
             product_page_heading: "Collection Inspired Interior",
-            product_page_image: timelessClassicsProductPageImage,
-            product_page_wide_image: timelessClassicsProductPageWideImage,
-            product_page_cta_image: timelessClassicsProductPageCtaImage,
             product_page_cta_heading:
               "The 'Name of sofa' brings a touch of traditional charm with its elegant curves and classic silhouette",
             product_page_cta_link:
