@@ -1,14 +1,11 @@
-FROM node:20-slim AS base
+FROM node:20-alpine AS base
 WORKDIR /usr/src/app
-
-# Install yarn globally
-RUN npm install -g yarn
 
 FROM base AS dependencies
 WORKDIR /usr/src/app
 
 # Copy package files and install dependencies
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 RUN yarn install --frozen-lockfile --production
 
 FROM base AS builder
