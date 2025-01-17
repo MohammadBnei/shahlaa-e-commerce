@@ -1,31 +1,12 @@
-"use server"
-
 import { sdk } from "@lib/config"
-import { HttpTypes } from "@medusajs/types"
-import { getAuthHeaders, getCacheOptions } from "./cookies"
+import { cache } from "react"
 
-export const listCartShippingMethods = async (cartId: string) => {
-  const headers = {
-    ...(await getAuthHeaders()),
-  }
-
-  const next = {
-    ...(await getCacheOptions("fulfillment")),
-  }
-
-  return sdk.client
-    .fetch<HttpTypes.StoreShippingOptionListResponse>(
-      `/store/shipping-options`,
-      {
-        method: "GET",
-        query: { cart_id: cartId },
-        headers,
-        next,
-        cache: "force-cache",
-      }
-    )
+// Shipping actions
+export const listCartShippingMethods = cache(async function (cartId: string) {
+  return sdk.store.fulfillment
+    .listCartOptions({ cart_id: cartId }, { next: { tags: ["shipping"] } })
     .then(({ shipping_options }) => shipping_options)
     .catch(() => {
       return null
     })
-}
+})

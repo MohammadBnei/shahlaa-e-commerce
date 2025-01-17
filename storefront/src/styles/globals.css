@@ -2,6 +2,21 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+@layer base {
+  html {
+    @apply text-black;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-medium;
+  }
+}
+
 @layer utilities {
   /* Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {
@@ -108,5 +123,49 @@
 
   .text-3xl-semi {
     @apply text-[32px] leading-[44px] font-semibold;
+  }
+
+  .article {
+    h1 {
+      @apply text-2xl;
+    }
+
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      @apply text-md mt-16 mb-8;
+    }
+
+    p,
+    ul {
+      @apply mb-4;
+    }
+
+    ul,
+    ol {
+      @apply pl-5;
+    }
+
+    ul {
+      @apply list-disc;
+    }
+
+    ol {
+      @apply list-decimal;
+
+      ul {
+        @apply mt-4 pl-0;
+      }
+
+      > li {
+        @apply pl-1;
+      }
+
+      > li + li {
+        @apply mt-5;
+      }
+    }
   }
 }

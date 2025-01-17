@@ -1,32 +1,27 @@
-FROM node:20-alpine AS base
+FROM node:22-slim AS base
 WORKDIR /usr/src/app
 
-FROM base AS dependencies
-WORKDIR /usr/src/app
+RUN npm install -g bun
 
-# Copy package files and install dependencies
-COPY package.json yarn.lock .yarnrc.yml ./
-RUN yarn install --frozen-lockfile --production
+FROM node:22 AS install
 
-FROM base AS builder
-WORKDIR /usr/src/app
+WORKDIR /temp/prod
 
-# Copy all files and install dev dependencies
+RUN npm i -g bun
+COPY package.json bun.lockb /temp/prod/
+RUN bun install --frozen-lockfile
+
+FROM base AS prerelease
+COPY --from=install /temp/prod/ ./ 
 COPY . .
-COPY --from=dependencies /usr/src/app/node_modules ./node_modules
-RUN yarn install --frozen-lockfile
-RUN yarn build
+ENV NODE_ENV=production
+RUN bun run build
+RUN cd .medusa/server && bun install
 
 FROM base AS release
-WORKDIR /usr/src/app
-
-# Copy only production dependencies and built files
-COPY --from=dependencies /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/ ./
-
-# Set environment variables
+COPY --from=install /temp/prod/node_modules node_modules
+COPY --from=prerelease /usr/src/app/.medusa/server .
+COPY medusa-config.ts ./
 ENV NODE_ENV=production
 ENV PORT=3000
-
-# Start the application
-CMD ["yarn", "start"]
+CMD ["bun", "start"]
