@@ -22,9 +22,7 @@ WORKDIR /usr/src/app
 
 # Copy only production dependencies and built files
 COPY --from=dependencies /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/.medusa/server ./server
-
-COPY --from=builder /usr/src/app/package.json /usr/src/app/medusa-config.ts ./
+COPY --from=builder /usr/src/app/ ./
 
 # Set environment variables
 ENV NODE_ENV=production

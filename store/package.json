@@ -1,6 +1,6 @@
 {
   "name": "medusa-server",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A starter for Medusa projects.",
   "author": "Medusa (https://medusajs.com)",
   "license": "MIT",
@@ -16,6 +16,7 @@
     "build": "medusa build",
     "build:admin": "medusa build --admin-only",
     "seed": "medusa exec ./src/scripts/seed.ts",
+    "migrate": "medusa db:migrate",
     "start": "medusa start",
     "dev": "medusa develop",
     "test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
