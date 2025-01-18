@@ -10,7 +10,7 @@ export default async function Footer() {
   const productCategories = await listCategories()
 
   return (
-    <footer className="border-t border-ui-border-base bg-ui-light w-full">
+    <footer className="border-t border-ui-border-base bg-white w-full">
       <div className="content-container flex flex-col w-full">
         <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-10">
           <div>
@@ -25,7 +25,7 @@ export default async function Footer() {
             {productCategories && productCategories?.length > 0 && (
               <div className="flex flex-col gap-y-2">
                 <span className="text-ui-dark font-semibold">
-                  Categories
+                  Catégories
                 </span>
                 <ul
                   className="grid grid-cols-1 gap-2"
@@ -130,7 +130,7 @@ export default async function Footer() {
                     href="/privacy-policy"
                     className="hover:text-ui-blue transition-colors"
                   >
-                    Privacy Policy
+                    Politique de confidentialité
                   </a>
                 </li>
               </ul>
@@ -139,7 +139,7 @@ export default async function Footer() {
         </div>
         <div className="flex w-full mb-4 justify-between text-ui-fg-muted">
           <Text className="text-ui-fg-subtle">
-            &copy; {new Date().getFullYear()} ChezScheyda. All rights reserved.
+            &copy; {new Date().getFullYear()} ChezScheyda. Tous droits réservés.
           </Text>
         </div>
       </div>

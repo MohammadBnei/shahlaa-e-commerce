@@ -10,10 +10,10 @@ import CountrySelect from "../country-select"
 import { HttpTypes } from "@medusajs/types"
 
 const SideMenuItems = {
-  Home: "/",
-  Store: "/store",
-  Account: "/account",
-  Cart: "/cart",
+  Accueil: "/",
+  Magasin: "/store",
+  Compte: "/account",
+  Panier: "/cart",
 }
 
 const SideMenu = ({ regions }: { regions: HttpTypes.StoreRegion[] | null }) => {
@@ -90,8 +90,8 @@ const SideMenu = ({ regions }: { regions: HttpTypes.StoreRegion[] | null }) => {
                         />
                       </div>
                       <Text className="txt-compact-small text-ui-fg-muted">
-                        {new Date().getFullYear()} ChezScheyda. All rights
-                        reserved.
+                        {new Date().getFullYear()} ChezScheyda. Tous droits
+                        réservés.
                       </Text>
                     </div>
                   </div>

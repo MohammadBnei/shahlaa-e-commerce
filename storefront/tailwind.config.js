@@ -13,7 +13,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#FAF9F5", // Main color
+        primary: "#FFFDF0", // Main color
         secondary: "#1D1D1B", // Contrast color
         red: "#B72A04", // Secondary red
         blue: "#2D5DA8", // Secondary blue

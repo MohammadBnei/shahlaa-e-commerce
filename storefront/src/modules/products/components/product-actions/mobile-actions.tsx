@@ -53,7 +53,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
     <>
       <div
         className={clx(
-          "lg:hidden sticky bottom-0 left-0 right-0 z-50 bg-white border-t border-ui-border-base",
+          "lg:hidden sticky bottom-0 left-0 right-0 z-50 bg-primary border-t border-ui-border-base",
           {
             "translate-y-full opacity-0": !show,
           }
@@ -115,13 +115,13 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   <div className="w-full flex justify-end pr-6">
                     <button
                       onClick={close}
-                      className="bg-white w-12 h-12 rounded-full text-ui-fg-base flex justify-center items-center"
+                      className="bg-primary w-12 h-12 rounded-full text-ui-fg-base flex justify-center items-center"
                       data-testid="close-modal-button"
                     >
                       <X />
                     </button>
                   </div>
-                  <div className="bg-white px-6 py-12">
+                  <div className="bg-primary px-6 py-12">
                     {(product.variants?.length ?? 0) > 1 && (
                       <div className="flex flex-col gap-y-6">
                         {(product.options || []).map((option) => {
