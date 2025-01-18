@@ -14,16 +14,16 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
   return (
     <div>
       <div className="pb-3 flex items-center">
-        <Heading className="text-[2rem] leading-[2.75rem]">Cart</Heading>
+        <Heading className="text-[2rem] leading-[2.75rem]">Panier</Heading>
       </div>
       <Table>
         <Table.Header className="border-t-0">
           <Table.Row className="text-ui-fg-subtle txt-medium-plus">
-            <Table.HeaderCell className="!pl-6 p-4">Item</Table.HeaderCell>
+            <Table.HeaderCell className="!pl-6 p-4">Produit</Table.HeaderCell>
             <Table.HeaderCell className="pl-6 p-4"></Table.HeaderCell>
-            <Table.HeaderCell className="pl-6 p-4">Quantity</Table.HeaderCell>
+            <Table.HeaderCell className="pl-6 p-4">Quantité</Table.HeaderCell>
             <Table.HeaderCell className="pl-6 p-4 hidden small:table-cell">
-              Price
+              Prix
             </Table.HeaderCell>
             <Table.HeaderCell className="!pr-6 p-4 text-right">
               Total
