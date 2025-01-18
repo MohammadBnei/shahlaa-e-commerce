@@ -12,6 +12,13 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: "#FAF9F5", // Main color
+        secondary: "#1D1D1B", // Contrast color
+        red: "#B72A04", // Secondary red
+        blue: "#2D5DA8", // Secondary blue
+        yellow: "#E5A422", // Secondary yellow
+      },
       transitionProperty: {
         width: "width margin",
         height: "height",
@@ -19,21 +26,6 @@ module.exports = {
         display: "display opacity",
         visibility: "visibility",
         padding: "padding-top padding-right padding-bottom padding-left",
-      },
-      colors: {
-        grey: {
-          0: "#FFFFFF",
-          5: "#F9FAFB",
-          10: "#F3F4F6",
-          20: "#E5E7EB",
-          30: "#D1D5DB",
-          40: "#9CA3AF",
-          50: "#6B7280",
-          60: "#4B5563",
-          70: "#374151",
-          80: "#1F2937",
-          90: "#111827",
-        },
       },
       borderRadius: {
         none: "0px",
