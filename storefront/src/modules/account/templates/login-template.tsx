@@ -6,8 +6,8 @@ import Register from "@modules/account/components/register"
 import Login from "@modules/account/components/login"
 
 export enum LOGIN_VIEW {
-  SIGN_IN = "sign-in",
-  REGISTER = "register",
+  SIGN_IN = "connexion",
+  REGISTER = "inscription",
 }
 
 const LoginTemplate = () => {
