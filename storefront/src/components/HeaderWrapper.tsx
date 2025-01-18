@@ -78,7 +78,7 @@ export const HeaderWrapper: React.FC<{ children?: React.ReactNode }> = ({
   return (
     <div
       id="site-header"
-      className="top-0 left-0 w-full max-md:bg-grayscale-50 data-[light=true]:md:text-white data-[sticky=true]:md:bg-white data-[sticky=true]:md:text-black transition-colors fixed max-md:px-6 z-40 group md:bg-black-10%"
+      className="top-0 left-0 w-full max-md:bg-grayscale-50 data-[light=true]:md:text-white data-[sticky=true]:md:bg-white data-[sticky=true]:md:text-black transition-colors fixed max-md:px-6 z-40 group md:bg-black md:bg-opacity-50"
       data-light={isPageWithHeroImage}
       data-sticky={false}
     >
