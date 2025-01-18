@@ -10,19 +10,21 @@ export default async function ProductPreview({
   product,
   isFeatured,
   region,
+  size = "full",
 }: {
   product: HttpTypes.StoreProduct
   isFeatured?: boolean
   region: HttpTypes.StoreRegion
+  size?: "small" | "medium" | "large" | "full" | "square"
 }) {
-  // const pricedProduct = await listProducts({
-  //   regionId: region.id,
-  //   queryParams: { id: [product.id!] },
-  // }).then(({ response }) => response.products[0])
+  const pricedProduct = await listProducts({
+    regionId: region.id,
+    queryParams: { id: [product.id!] },
+  }).then(({ response }) => response.products[0])
 
-  // if (!pricedProduct) {
-  //   return null
-  // }
+  if (!pricedProduct) {
+    return null
+  }
 
   const { cheapestPrice } = getProductPrice({
     product,
@@ -30,18 +32,18 @@ export default async function ProductPreview({
 
   return (
     <LocalizedClientLink href={`/products/${product.handle}`} className="group">
-      <div data-testid="product-wrapper">
+      <div data-testid="product-wrapper" className="flex flex-col">
         <Thumbnail
           thumbnail={product.thumbnail}
           images={product.images}
-          size="full"
+          size={size}
           isFeatured={isFeatured}
         />
-        <div className="flex txt-compact-medium mt-4 justify-between">
-          <Text className="text-ui-fg-subtle" data-testid="product-title">
+        <div className="flex flex-col items-center txt-compact-medium mt-4 px-4">
+          <Text className="text-ui-fg-subtle truncate" data-testid="product-title">
             {product.title}
           </Text>
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-2 shrink-0">
             {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
           </div>
         </div>

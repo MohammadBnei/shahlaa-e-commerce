@@ -53,10 +53,11 @@ export default async function RelatedProducts({
           Related products
         </span>
       </div>
-      <ul className="grid grid-cols-1 small:grid-cols-2 medium:grid-cols-3 gap-x-4 gap-y-8 px-2 pb-16">
+
+      <ul className="grid grid-cols-2 small:grid-cols-4 gap-x-8 gap-y-8 place-items-center">
         {products.slice(0, 4).map((p) => (
           <li key={p.id}>
-            <Product product={p} region={region} />
+            <Product product={p} region={region} size="small" />
           </li>
         ))}
       </ul>
