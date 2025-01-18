@@ -1,48 +1,44 @@
-import { getProductsListWithSort } from "@lib/data/products"
+import { listProductsWithSort } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
-import { HttpTypes } from "@medusajs/types"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
-import { Layout, LayoutColumn } from "@/components/Layout"
 
 const PRODUCT_LIMIT = 12
+
+type PaginatedProductsParams = {
+  limit: number
+  collection_id?: string[]
+  category_id?: string[]
+  id?: string[]
+  order?: string
+}
 
 export default async function PaginatedProducts({
   sortBy,
   page,
   collectionId,
   categoryId,
-  typeId,
   productsIds,
   countryCode,
 }: {
   sortBy?: SortOptions
   page: number
-  collectionId?: string | string[]
-  categoryId?: string | string[]
-  typeId?: string | string[]
+  collectionId?: string
+  categoryId?: string
   productsIds?: string[]
   countryCode: string
 }) {
-  const queryParams: HttpTypes.StoreProductListParams = {
-    limit: PRODUCT_LIMIT,
+  const queryParams: PaginatedProductsParams = {
+    limit: 12,
   }
 
   if (collectionId) {
-    queryParams["collection_id"] = Array.isArray(collectionId)
-      ? collectionId
-      : [collectionId]
+    queryParams["collection_id"] = [collectionId]
   }
 
   if (categoryId) {
-    queryParams["category_id"] = Array.isArray(categoryId)
-      ? categoryId
-      : [categoryId]
-  }
-
-  if (typeId) {
-    queryParams["type_id"] = Array.isArray(typeId) ? typeId : [typeId]
+    queryParams["category_id"] = [categoryId]
   }
 
   if (productsIds) {
@@ -61,7 +57,7 @@ export default async function PaginatedProducts({
 
   let {
     response: { products, count },
-  } = await getProductsListWithSort({
+  } = await listProductsWithSort({
     page,
     queryParams,
     sortBy,
@@ -72,15 +68,18 @@ export default async function PaginatedProducts({
 
   return (
     <>
-      <Layout className="gap-y-10 md:gap-y-16 mb-16 md:mb-20">
+      <ul
+        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
+        data-testid="products-list"
+      >
         {products.map((p) => {
           return (
-            <LayoutColumn key={p.id} className="md:!col-span-4 !col-span-6">
+            <li key={p.id}>
               <ProductPreview product={p} region={region} />
-            </LayoutColumn>
+            </li>
           )
         })}
-      </Layout>
+      </ul>
       {totalPages > 1 && (
         <Pagination
           data-testid="product-pagination"

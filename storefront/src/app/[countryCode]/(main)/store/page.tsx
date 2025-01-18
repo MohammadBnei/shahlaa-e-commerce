@@ -11,9 +11,6 @@ export const metadata: Metadata = {
 type Params = {
   searchParams: Promise<{
     sortBy?: SortOptions
-    collection?: string | string[]
-    category?: string | string[]
-    type?: string | string[]
     page?: string
   }>
   params: Promise<{
@@ -21,26 +18,16 @@ type Params = {
   }>
 }
 
-export default async function StorePage({ searchParams, params }: Params) {
-  const { countryCode } = await params
-  const { sortBy, page, collection, category, type } = await searchParams
+export default async function StorePage(props: Params) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
+  const { sortBy, page } = searchParams
 
   return (
     <StoreTemplate
       sortBy={sortBy}
       page={page}
-      countryCode={countryCode}
-      collection={
-        !collection
-          ? undefined
-          : Array.isArray(collection)
-            ? collection
-            : [collection]
-      }
-      category={
-        !category ? undefined : Array.isArray(category) ? category : [category]
-      }
-      type={!type ? undefined : Array.isArray(type) ? type : [type]}
+      countryCode={params.countryCode}
     />
   )
 }
