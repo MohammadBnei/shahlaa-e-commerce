@@ -12,15 +12,23 @@ module.exports = {
   ],
   theme: {
     extend: {
-      transitionProperty: {
-        width: "width margin",
-        height: "height",
-        bg: "background-color",
-        display: "display opacity",
-        visibility: "visibility",
-        padding: "padding-top padding-right padding-bottom padding-left",
-      },
       colors: {
+        ui: {
+          light: "#FAF9F5",    // Main color
+          dark: "#1D1D1B",     // Contrast color
+          red: "#B72A04",      // Secondary red
+          blue: "#2D5DA8",     // Secondary blue
+          yellow: "#E5A422",   // Secondary yellow
+          "fg-base": "#1D1D1B",
+          "fg-subtle": "#1D1D1B99",
+          "fg-muted": "#1D1D1B66",
+          "border-base": "#E5A422",
+          "border-subtle": "#E5A42233",
+          "border-strong": "#2D5DA8",
+          "bg-base": "#FAF9F5",
+          "bg-subtle": "#FAF9F5CC",
+          "bg-muted": "#FAF9F599"
+        },
         grey: {
           0: "#FFFFFF",
           5: "#F9FAFB",
@@ -34,6 +42,14 @@ module.exports = {
           80: "#1F2937",
           90: "#111827",
         },
+      },
+      transitionProperty: {
+        width: "width margin",
+        height: "height",
+        bg: "background-color",
+        display: "display opacity",
+        visibility: "visibility",
+        padding: "padding-top padding-right padding-bottom padding-left",
       },
       borderRadius: {
         none: "0px",
