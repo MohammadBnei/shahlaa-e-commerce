@@ -12,7 +12,7 @@ import { retrieveCustomer } from "@lib/data/customer"
 
 export const metadata: Metadata = {
   title: "Profile",
-  description: "View and edit your Medusa Store profile.",
+  description: "View and edit your ChezScheyda profile.",
 }
 
 export default async function Profile() {
@@ -51,4 +51,3 @@ export default async function Profile() {
 const Divider = () => {
   return <div className="w-full h-px bg-gray-200" />
 }
-;``

@@ -40,9 +40,9 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
       })
   }
 
-  // TODO: Update this to grab the actual max inventory
-  const maxQtyFromInventory = 10
-  const maxQuantity = item.variant?.manage_inventory ? 10 : maxQtyFromInventory
+  // Use the actual inventory quantity from the variant
+  const inventoryQuantity = item.variant?.inventory_quantity ?? 0
+  const maxQuantity = item.variant?.manage_inventory ? inventoryQuantity : Infinity
 
   return (
     <Table.Row className="w-full" data-testid="product-row">

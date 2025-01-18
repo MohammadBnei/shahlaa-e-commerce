@@ -20,13 +20,15 @@ const Register = ({ setCurrentView }: Props) => {
       className="max-w-sm flex flex-col items-center"
       data-testid="register-page"
     >
-      <h1 className="text-large-semi uppercase mb-6">
-        Become a Medusa Store Member
-      </h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-4">
-        Create your Medusa Store Member profile, and get access to an enhanced
-        shopping experience.
-      </p>
+      <div className="flex flex-col gap-y-2 text-center">
+        <h1 className="text-large-semi">
+          Become a ChezScheyda Member
+        </h1>
+        <p className="text-base-regular text-ui-fg-base">
+          Create your ChezScheyda Member profile, and get access to an enhanced
+          shopping experience.
+        </p>
+      </div>
       <form className="w-full flex flex-col" action={formAction}>
         <div className="flex flex-col w-full gap-y-2">
           <Input
@@ -68,8 +70,8 @@ const Register = ({ setCurrentView }: Props) => {
           />
         </div>
         <ErrorMessage error={message} data-testid="register-error" />
-        <span className="text-center text-ui-fg-base text-small-regular mt-6">
-          By creating an account, you agree to Medusa Store&apos;s{" "}
+        <span className="text-small-regular text-ui-fg-base">
+          By creating an account, you agree to ChezScheyda&apos;s{" "}
           <LocalizedClientLink
             href="/content/privacy-policy"
             className="underline"

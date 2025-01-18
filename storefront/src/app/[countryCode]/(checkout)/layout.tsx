@@ -26,10 +26,9 @@ export default function CheckoutLayout({
           </LocalizedClientLink>
           <LocalizedClientLink
             href="/"
-            className="txt-compact-xlarge-plus text-ui-fg-subtle hover:text-ui-fg-base uppercase"
-            data-testid="store-link"
+            className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase"
           >
-            Medusa Store
+            ChezScheyda
           </LocalizedClientLink>
           <div className="flex-1 basis-0" />
         </nav>

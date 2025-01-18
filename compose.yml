@@ -7,8 +7,6 @@ services:
       POSTGRES_USER: "medusa"
       POSTGRES_PASSWORD: "medusa"
       POSTGRES_DB: "medusa"
-    volumes:
-      - ./data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "--host=localhost", "--username=medusa"]
       interval: 10s

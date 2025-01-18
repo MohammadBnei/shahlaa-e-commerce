@@ -1,9 +1,8 @@
 import {
   createApiKeysWorkflow,
-  createCollectionsWorkflow,
+  createInventoryLevelsWorkflow,
   createProductCategoriesWorkflow,
   createProductsWorkflow,
-  createProductTypesWorkflow,
   createRegionsWorkflow,
   createSalesChannelsWorkflow,
   createShippingOptionsWorkflow,
@@ -13,39 +12,23 @@ import {
   linkSalesChannelsToApiKeyWorkflow,
   linkSalesChannelsToStockLocationWorkflow,
   updateStoresWorkflow,
-  uploadFilesWorkflow,
 } from "@medusajs/medusa/core-flows";
-import {
-  ExecArgs,
-  IFulfillmentModuleService,
-  ISalesChannelModuleService,
-  IStoreModuleService,
-} from "@medusajs/framework/types";
+import { CreateInventoryLevelInput, ExecArgs } from "@medusajs/framework/types";
 import {
   ContainerRegistrationKeys,
   Modules,
   ProductStatus,
 } from "@medusajs/framework/utils";
-import type FashionModuleService from "src/modules/fashion/service";
-import type { MaterialModelType } from "src/modules/fashion/models/material";
-
 
 export default async function seedDemoData({ container }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
-  const remoteLink = container.resolve(ContainerRegistrationKeys.LINK);
-  const fulfillmentModuleService: IFulfillmentModuleService = container.resolve(
-    Modules.FULFILLMENT
-  );
-  const salesChannelModuleService: ISalesChannelModuleService =
-    container.resolve(Modules.SALES_CHANNEL);
-  const storeModuleService: IStoreModuleService = container.resolve(
-    Modules.STORE
-  );
-  const fashionModuleService: FashionModuleService = container.resolve(
-    "fashionModuleService"
-  );
+  const remoteLink = container.resolve(ContainerRegistrationKeys.REMOTE_LINK);
+  const query = container.resolve(ContainerRegistrationKeys.QUERY);
+  const fulfillmentModuleService = container.resolve(Modules.FULFILLMENT);
+  const salesChannelModuleService = container.resolve(Modules.SALES_CHANNEL);
+  const storeModuleService = container.resolve(Modules.STORE);
 
-  const countries = ["hr", "gb", "de", "dk", "se", "fr", "es", "it"];
+  const countries = ["gb", "de", "dk", "se", "fr", "es", "it"];
 
   logger.info("Seeding store data...");
   const [store] = await storeModuleService.listStores();
@@ -69,22 +52,6 @@ export default async function seedDemoData({ container }: ExecArgs) {
     defaultSalesChannel = salesChannelResult;
   }
 
-  logger.info("Seeding region data...");
-  const { result: regionResult } = await createRegionsWorkflow(container).run({
-    input: {
-      regions: [
-        {
-          name: "Europe",
-          currency_code: "eur",
-          countries,
-          payment_providers: ["pp_stripe_stripe"],
-        },
-      ],
-    },
-  });
-  const region = regionResult[0];
-  logger.info("Finished seeding regions.");
-
   await updateStoresWorkflow(container).run({
     input: {
       selector: { id: store.id },
@@ -99,10 +66,24 @@ export default async function seedDemoData({ container }: ExecArgs) {
           },
         ],
         default_sales_channel_id: defaultSalesChannel[0].id,
-        default_region_id: region.id,
       },
     },
   });
+  logger.info("Seeding region data...");
+  const { result: regionResult } = await createRegionsWorkflow(container).run({
+    input: {
+      regions: [
+        {
+          name: "Europe",
+          currency_code: "eur",
+          countries,
+          payment_providers: ["pp_system_default"],
+        },
+      ],
+    },
+  });
+  const region = regionResult[0];
+  logger.info("Finished seeding regions.");
 
   logger.info("Seeding tax regions...");
   await createTaxRegionsWorkflow(container).run({
@@ -161,10 +142,6 @@ export default async function seedDemoData({ container }: ExecArgs) {
       {
         name: "Europe",
         geo_zones: [
-          {
-            country_code: "hr",
-            type: "country",
-          },
           {
             country_code: "gb",
             type: "country",
@@ -287,80 +264,6 @@ export default async function seedDemoData({ container }: ExecArgs) {
       },
     ],
   });
-
-  const pickupFulfillmentSet =
-    await fulfillmentModuleService.createFulfillmentSets({
-      name: "Store pickup",
-      type: "pickup",
-      service_zones: [
-        {
-          name: "Store pickup",
-          geo_zones: [
-            {
-              country_code: "hr",
-              type: "country",
-            },
-            {
-              country_code: "dk",
-              type: "country",
-            },
-          ],
-        },
-      ],
-    });
-
-  await remoteLink.create({
-    [Modules.STOCK_LOCATION]: {
-      stock_location_id: stockLocation.id,
-    },
-    [Modules.FULFILLMENT]: {
-      fulfillment_set_id: pickupFulfillmentSet.id,
-    },
-  });
-
-  await createShippingOptionsWorkflow(container).run({
-    input: [
-      {
-        name: "Denmark Store Pickup",
-        price_type: "flat",
-        provider_id: "manual_manual",
-        service_zone_id: pickupFulfillmentSet.service_zones[0].id,
-        shipping_profile_id: shippingProfile.id,
-        type: {
-          label: "Denmark Store Pickup",
-          description: "Free in-store pickup.",
-          code: "standard",
-        },
-        prices: [
-          {
-            currency_code: "usd",
-            amount: 0,
-          },
-          {
-            currency_code: "eur",
-            amount: 0,
-          },
-          {
-            region_id: region.id,
-            amount: 0,
-          },
-        ],
-        rules: [
-          {
-            attribute: "enabled_in_store",
-            value: '"true"',
-            operator: "eq",
-          },
-          {
-            attribute: "is_return",
-            value: "false",
-            operator: "eq",
-          },
-        ],
-      },
-    ],
-  });
-
   logger.info("Finished seeding fulfillment data.");
 
   await linkSalesChannelsToStockLocationWorkflow(container).run({
@@ -403,1366 +306,203 @@ export default async function seedDemoData({ container }: ExecArgs) {
     input: {
       product_categories: [
         {
-          name: "One seater",
+          name: "Shirts",
           is_active: true,
         },
         {
-          name: "Two seater",
+          name: "Sweatshirts",
           is_active: true,
         },
         {
-          name: "Three seater",
+          name: "Pants",
+          is_active: true,
+        },
+        {
+          name: "Merch",
           is_active: true,
         },
       ],
     },
   });
 
-
-  const { result: productTypes } = await createProductTypesWorkflow(
-    container
-  ).run({
-    input: {
-      product_types: [
-        {
-          value: "Sofas",
-          metadata: {},
-        },
-        {
-          value: "Arm Chairs",
-          metadata: {},
-        },
-      ],
-    },
-  });
-
-
-  const { result: collections } = await createCollectionsWorkflow(
-    container
-  ).run({
-    input: {
-      collections: [
-        {
-          title: "Scandinavian Simplicity",
-          handle: "scandinavian-simplicity",
-          metadata: {
-            description:
-              "Minimalistic designs, neutral colors, and high-quality textures",
-            image: scandinavianSimplicityImage,
-            collection_page_heading:
-              "Scandinavian Simplicity: Effortless elegance, timeless comfort",
-            collection_page_content: `Minimalistic designs, neutral colors, and high-quality textures. Perfect for those who seek comfort with a clean and understated aesthetic.
-
-This collection brings the essence of Scandinavian elegance to your living room.`,
-            product_page_heading: "Collection Inspired Interior",
-            product_page_cta_heading:
-              "The 'Name of sofa' embodies Scandinavian minimalism with clean lines and a soft, neutral palette.",
-            product_page_cta_link:
-              "See more out of ‘Scandinavian Simplicity’ collection",
-          },
-        },
-        {
-          title: "Modern Luxe",
-          handle: "modern-luxe",
-          metadata: {
-            description:
-              "Sophisticated and sleek, these sofas blend modern design with luxurious comfort",
-            image: modernLuxeImage,
-            collection_page_heading:
-              "Modern Luxe: Where modern design meets luxurious living",
-            collection_page_content: `Sophisticated and sleek, these sofas blend modern design with luxurious comfort. Bold lines and premium materials create the ultimate statement pieces for any contemporary home.
-
-Elevate your space with timeless beauty.`,
-            product_page_heading: "Collection Inspired Interior",
-            product_page_cta_heading:
-              "The 'Name of sofa' is a masterpiece of minimalism and luxury.",
-            product_page_cta_link: "See more out of ‘Modern Luxe’ collection",
-          },
-        },
-        {
-          title: "Boho Chic",
-          handle: "boho-chic",
-          metadata: {
-            description:
-              "Infused with playful textures and vibrant patterns with eclectic vibes",
-            image: bohoChicImage,
-            collection_page_heading:
-              "Boho Chic: Relaxed, eclectic style with a touch of free-spirited charm",
-            collection_page_content: `Infused with playful textures and vibrant patterns, this collection embodies relaxed, eclectic vibes. Soft fabrics and creative designs add warmth and personality to any room.
-
-It’s comfort with a bold, carefree spirit.`,
-            product_page_heading: "Collection Inspired Interior",
-            product_page_cta_heading:
-              "The 'Name of sofa' captures the essence of boho style with its relaxed, oversized form and eclectic fabric choices.",
-            product_page_cta_link: "See more out of ‘Boho Chic’ collection",
-          },
-        },
-        {
-          title: "Timeless Classics",
-          handle: "timeless-classics",
-          metadata: {
-            description:
-              "Elegant shapes and rich textures, traditional craftsmanship with modern comfort",
-            image: timelessClassicsImage,
-            collection_page_heading:
-              "Timeless Classics: Enduring style, crafted for comfort and lasting beauty",
-            collection_page_content: `Designed for those who appreciate enduring style, this collection features elegant shapes and rich textures. These sofas combine traditional craftsmanship with modern comfort.
-
-Perfect for creating a warm, inviting atmosphere that never goes out of style.`,
-            product_page_heading: "Collection Inspired Interior",
-            product_page_cta_heading:
-              "The 'Name of sofa' brings a touch of traditional charm with its elegant curves and classic silhouette",
-            product_page_cta_link:
-              "See more out of ‘Timeless Classics’ collection",
-          },
-        },
-      ],
-    },
-  });
-
-  const materials: MaterialModelType[] =
-    await fashionModuleService.createMaterials([
-      {
-        name: "Velvet",
-      },
-      {
-        name: "Linen",
-      },
-      {
-        name: "Boucle",
-      },
-      {
-        name: "Leather",
-      },
-      {
-        name: "Microfiber",
-      },
-    ]);
-
-  await fashionModuleService.createColors([
-    // Velvet
-    {
-      name: "Black",
-      hex_code: "#4C4D4E",
-      material_id: materials.find((m) => m.name === "Velvet").id,
-    },
-    {
-      name: "Purple",
-      hex_code: "#904C94",
-      material_id: materials.find((m) => m.name === "Velvet").id,
-    },
-    // Linen
-    {
-      name: "Green",
-      hex_code: "#438849",
-      material_id: materials.find((m) => m.name === "Linen").id,
-    },
-    {
-      name: "Light Gray",
-      hex_code: "#B1B1B1",
-      material_id: materials.find((m) => m.name === "Linen").id,
-    },
-    {
-      name: "Yellow",
-      hex_code: "#F1BD37",
-      material_id: materials.find((m) => m.name === "Linen").id,
-    },
-    {
-      name: "Red",
-      hex_code: "#CD1F23",
-      material_id: materials.find((m) => m.name === "Linen").id,
-    },
-    {
-      name: "Blue",
-      hex_code: "#475F8A",
-      material_id: materials.find((m) => m.name === "Linen").id,
-    },
-    // Microfiber
-    {
-      name: "Orange",
-      hex_code: "#EF7218",
-      material_id: materials.find((m) => m.name === "Microfiber").id,
-    },
-    {
-      name: "Dark Gray",
-      hex_code: "#4A4A4A",
-      material_id: materials.find((m) => m.name === "Microfiber").id,
-    },
-    {
-      name: "Black",
-      hex_code: "#282828",
-      material_id: materials.find((m) => m.name === "Microfiber").id,
-    },
-    // Boucle
-    {
-      name: "Beige",
-      hex_code: "#C8BCB3",
-      material_id: materials.find((m) => m.name === "Boucle").id,
-    },
-    {
-      name: "White",
-      hex_code: "#EAEAEA",
-      material_id: materials.find((m) => m.name === "Boucle").id,
-    },
-    {
-      name: "Light Gray",
-      hex_code: "#C3C0BE",
-      material_id: materials.find((m) => m.name === "Boucle").id,
-    },
-    // Leather
-    {
-      name: "Violet",
-      hex_code: "#B1ABBF",
-      material_id: materials.find((m) => m.name === "Leather").id,
-    },
-    {
-      name: "Beige",
-      hex_code: "#A79D9B",
-      material_id: materials.find((m) => m.name === "Leather").id,
-    },
-  ]);
-
-
   await createProductsWorkflow(container).run({
     input: {
       products: [
         {
-          title: "Astrid Curve",
-          handle: "astrid-curve",
-          description:
-            "The Astrid Curve combines flowing curves and cozy, textured fabric for a truly bohemian vibe. Its relaxed design adds character and comfort, perfect for eclectic living spaces with a free-spirited charm.",
+          title: "Medusa T-Shirt",
           category_ids: [
-            categoryResult.find((cat) => cat.name === "Three seater").id,
+            categoryResult.find((cat) => cat.name === "Shirts")!.id,
           ],
-          collection_id: collections.find((c) => c.handle === "boho-chic").id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
+          description:
+            "Reimagine the feeling of a classic T-shirt. With our cotton T-shirts, everyday essentials no longer have to be ordinary.",
+          handle: "t-shirt",
+          weight: 400,
           status: ProductStatus.PUBLISHED,
-          images: [],
+          images: [
+            {
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png",
+            },
+            {
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-back.png",
+            },
+            {
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-white-front.png",
+            },
+            {
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-white-back.png",
+            },
+          ],
           options: [
             {
-              title: "Material",
-              values: ["Microfiber", "Velvet"],
+              title: "Size",
+              values: ["S", "M", "L", "XL"],
             },
             {
               title: "Color",
-              values: ["Dark Gray", "Purple"],
+              values: ["Black", "White"],
             },
           ],
           variants: [
             {
-              title: "Microfiber / Dark Gray",
-              sku: "ASTRID-CURVE-MICROFIBER-DARK-GRAY",
+              title: "S / Black",
+              sku: "SHIRT-S-BLACK",
               options: {
-                Material: "Microfiber",
-                Color: "Dark Gray",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1500,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1700,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Velvet / Purple",
-              sku: "ASTRID-CURVE-VELVET-PURPLE",
-              options: {
-                Material: "Velvet",
-                Color: "Purple",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Belime Estate",
-          handle: "belime-estate",
-          description:
-            "The Belime Estate exudes classic sophistication with its tufted back and rich fabric. Its luxurious look and enduring comfort make it a perfect fit for traditional, elegant interiors.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Two seater").id,
-          ],
-          collection_id: collections.find(
-            (c) => c.handle === "timeless-classics"
-          ).id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Linen", "Boucle"],
-            },
-            {
-              title: "Color",
-              values: ["Red", "Blue", "Beige"],
-            },
-          ],
-          variants: [
-            {
-              title: "Linen / Red",
-              sku: "BELIME-ESTATE-LINEN-RED",
-              options: {
-                Material: "Linen",
-                Color: "Red",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1500,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1700,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Linen / Blue",
-              sku: "BELIME-ESTATE-LINEN-BLUE",
-              options: {
-                Material: "Linen",
-                Color: "Blue",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1500,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1700,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Boucle / Beige",
-              sku: "BELIME-ESTATE-BOUCLE-BEIGE",
-              options: {
-                Material: "Boucle",
-                Color: "Beige",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Cypress Retreat",
-          handle: "cypress-retreat",
-          description:
-            "The Cypress Retreat is a nod to traditional design with its elegant lines and durable, high-quality upholstery. A timeless choice, it offers long-lasting comfort and a refined aesthetic for any home.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Three seater").id,
-          ],
-          collection_id: collections.find(
-            (c) => c.handle === "timeless-classics"
-          ).id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Leather"],
-            },
-            {
-              title: "Color",
-              values: ["Beige", "Violet"],
-            },
-          ],
-          variants: [
-            {
-              title: "Leather / Beige",
-              sku: "CYPRESS-RETREAT-LEATHER-BEIGE",
-              options: {
-                Material: "Leather",
-                Color: "Beige",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1500,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1700,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Leather / Violet",
-              sku: "CYPRESS-RETREAT-LEATHER-VIOLET",
-              options: {
-                Material: "Leather",
-                Color: "Violet",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Everly Estate",
-          handle: "everly-estate",
-          description:
-            "The Everly Estate offers a blend of modern elegance and plush luxury, with its sleek lines and soft velvet upholstery. Perfect for upscale interiors, it exudes sophistication and comfort in equal measure.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Two seater").id,
-          ],
-          collection_id: collections.find((c) => c.handle === "modern-luxe").id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Microfiber", "Velvet"],
-            },
-            {
-              title: "Color",
-              values: ["Orange", "Black"],
-            },
-          ],
-          variants: [
-            {
-              title: "Microfiber / Orange",
-              sku: "EVERLY-ESTATE-MICROFIBER-ORANGE",
-              options: {
-                Material: "Microfiber",
-                Color: "Orange",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1500,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1700,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Velvet / Black",
-              sku: "EVERLY-ESTATE-VELVET-BLACK",
-              options: {
-                Material: "Velvet",
+                Size: "S",
                 Color: "Black",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 2000,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Havenhill Estate",
-          handle: "havenhill-estate",
-          description:
-            "The Havenhill Estate brings a touch of traditional charm with its elegant curves and classic silhouette. Upholstered in durable, luxurious fabric, it’s a timeless piece that combines comfort and style, fitting seamlessly into any sophisticated home.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "One seater").id,
-          ],
-          collection_id: collections.find(
-            (c) => c.handle === "timeless-classics"
-          ).id,
-          type_id: productTypes.find((pt) => pt.value === "Arm Chairs").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Linen", "Boucle"],
-            },
-            {
-              title: "Color",
-              values: ["Green", "Light Gray", "Yellow"],
-            },
-          ],
-          variants: [
-            {
-              title: "Linen / Green",
-              sku: "HAVENHILL-ESTATE-LINEN-GREEN",
-              options: {
-                Material: "Linen",
-                Color: "Green",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1200,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Boucle / Light Gray",
-              sku: "HAVENHILL-ESTATE-BOUCLE-LIGHT-GRAY",
+              title: "S / White",
+              sku: "SHIRT-S-WHITE",
               options: {
-                Material: "Boucle",
-                Color: "Light Gray",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1200,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1400,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Monaco Flair",
-          handle: "monaco-flair",
-          description:
-            "The Monaco Flair combines sleek metallic accents with rich fabric, delivering a bold, luxurious statement. Its minimalist design and deep seating make it a standout piece for modern living rooms.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Three seater").id,
-          ],
-          collection_id: collections.find((c) => c.handle === "modern-luxe").id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Linen", "Boucle"],
-            },
-            {
-              title: "Color",
-              values: ["Green", "Light Gray", "Beige"],
-            },
-          ],
-          variants: [
-            {
-              title: "Linen / Green",
-              sku: "MONACO-FLAIR-LINEN-GREEN",
-              options: {
-                Material: "Linen",
-                Color: "Green",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1500,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1700,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Boucle / Light Gray",
-              sku: "MONACO-FLAIR-BOUCLE-LIGHT-GRAY",
-              options: {
-                Material: "Boucle",
-                Color: "Light Gray",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Boucle / Beige",
-              sku: "MONACO-FLAIR-BOUCLE-BEIGE",
-              options: {
-                Material: "Boucle",
-                Color: "Beige",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Nordic Breeze",
-          handle: "nordic-breeze",
-          description:
-            "The Nordic Breeze is a refined expression of Scandinavian minimalism, with its crisp silhouette and airy aesthetic. Crafted for both comfort and simplicity, it’s perfect for creating a serene living space.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "One seater").id,
-          ],
-          collection_id: collections.find(
-            (c) => c.handle === "scandinavian-simplicity"
-          ).id,
-          type_id: productTypes.find((pt) => pt.value === "Arm Chairs").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Boucle", "Linen"],
-            },
-            {
-              title: "Color",
-              values: ["Beige", "White", "Light Gray"],
-            },
-          ],
-          variants: [
-            {
-              title: "Boucle / Beige",
-              sku: "NORDIC-BREEZE-BOUCLE-BEIGE",
-              options: {
-                Material: "Boucle",
-                Color: "Beige",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1200,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1400,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Boucle / White",
-              sku: "NORDIC-BREEZE-BOUCLE-WHITE",
-              options: {
-                Material: "Boucle",
+                Size: "S",
                 Color: "White",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 1200,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 1400,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Linen / Light Gray",
-              sku: "NORDIC-BREEZE-LINEN-LIGHT-GRAY",
+              title: "M / Black",
+              sku: "SHIRT-M-BLACK",
               options: {
-                Material: "Linen",
-                Color: "Light Gray",
+                Size: "M",
+                Color: "Black",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 1800,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 2000,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Nordic Haven",
-          handle: "nordic-haven",
-          description:
-            "The Nordic Haven features clean lines and soft textures, embodying the essence of Scandinavian design. Its natural tones and minimalist frame bring effortless serenity and comfort to any home.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Three seater").id,
-          ],
-          collection_id: collections.find(
-            (c) => c.handle === "scandinavian-simplicity"
-          ).id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Linen", "Boucle"],
-            },
-            {
-              title: "Color",
-              values: ["Light Gray", "White", "Beige"],
-            },
-          ],
-          variants: [
-            {
-              title: "Linen / Light Gray",
-              sku: "NORDIC-HAVEN-LINEN-LIGHT-GRAY",
-              options: {
-                Material: "Linen",
-                Color: "Light Gray",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1500,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1700,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Boucle / White",
-              sku: "NORDIC-HAVEN-BOUCLE-WHITE",
+              title: "M / White",
+              sku: "SHIRT-M-WHITE",
               options: {
-                Material: "Boucle",
+                Size: "M",
                 Color: "White",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 2000,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 2200,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Boucle / Beige",
-              sku: "NORDIC-HAVEN-BOUCLE-BEIGE",
+              title: "L / Black",
+              sku: "SHIRT-L-BLACK",
               options: {
-                Material: "Boucle",
-                Color: "Beige",
+                Size: "L",
+                Color: "Black",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 2000,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 2200,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
-          ],
-          sales_channels: [
             {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Oslo Drift",
-          handle: "oslo-drift",
-          description:
-            "The Oslo Drift is designed for ultimate relaxation, with soft, supportive cushions and a sleek, modern frame. Its understated elegance and neutral tones make it an ideal fit for contemporary, minimalist homes.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Two seater").id,
-          ],
-          collection_id: collections.find(
-            (c) => c.handle === "scandinavian-simplicity"
-          ).id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Boucle", "Linen"],
-            },
-            {
-              title: "Color",
-              values: ["White", "Beige", "Light Gray"],
-            },
-          ],
-          variants: [
-            {
-              title: "Boucle / White",
-              sku: "OSLO-DRIFT-BOUCLE-WHITE",
+              title: "L / White",
+              sku: "SHIRT-L-WHITE",
               options: {
-                Material: "Boucle",
+                Size: "L",
                 Color: "White",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 1500,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 1700,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Boucle / Beige",
-              sku: "OSLO-DRIFT-BOUCLE-BEIGE",
+              title: "XL / Black",
+              sku: "SHIRT-XL-BLACK",
               options: {
-                Material: "Boucle",
-                Color: "Beige",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Linen / Light Gray",
-              sku: "OSLO-DRIFT-LINEN-LIGHT-GRAY",
-              options: {
-                Material: "Linen",
-                Color: "Light Gray",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Oslo Serenity",
-          handle: "oslo-serenity",
-          description:
-            "The Oslo Serenity embodies Scandinavian minimalism with clean lines and a soft, neutral palette. Its tailored silhouette and plush cushions deliver a balance of simplicity and comfort, making it perfect for those who value understated elegance.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Two seater").id,
-          ],
-          collection_id: collections.find(
-            (c) => c.handle === "scandinavian-simplicity"
-          ).id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Leather"],
-            },
-            {
-              title: "Color",
-              values: ["Violet", "Beige"],
-            },
-          ],
-          variants: [
-            {
-              title: "Leather / Violet",
-              sku: "OSLO-SERENITY-LEATHER-VIOLET",
-              options: {
-                Material: "Leather",
-                Color: "Violet",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1500,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1700,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Leather / Beige",
-              sku: "OSLO-SERENITY-LEATHER-BEIGE",
-              options: {
-                Material: "Leather",
-                Color: "Beige",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Paloma Haven",
-          handle: "paloma-haven",
-          description:
-            "Minimalistic designs, neutral colors, and high-quality textures. Perfect for those who seek comfort with a clean and understated aesthetic. This collection brings the essence of Scandinavian elegance to your living room.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "One seater").id,
-          ],
-          collection_id: collections.find((c) => c.handle === "modern-luxe").id,
-          type_id: productTypes.find((pt) => pt.value === "Arm Chairs").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Linen", "Boucle"],
-            },
-            {
-              title: "Color",
-              values: ["Light Gray", "Green", "Beige"],
-            },
-          ],
-          variants: [
-            {
-              title: "Linen / Light Gray",
-              sku: "PALOMA-HAVEN-LINEN-LIGHT-GRAY",
-              options: {
-                Material: "Linen",
-                Color: "Light Gray",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 900,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1100,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Linen / Green",
-              sku: "PALOMA-HAVEN-LINEN-GREEN",
-              options: {
-                Material: "Linen",
-                Color: "Green",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 900,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1100,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Boucle / Beige",
-              sku: "PALOMA-HAVEN-BOUCLE-BEIGE",
-              options: {
-                Material: "Boucle",
-                Color: "Beige",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1200,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1400,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Savannah Grove",
-          handle: "savannah-grove",
-          description:
-            "The Savannah Grove captures the essence of boho style with its relaxed, oversized form and eclectic fabric choices. Designed for both comfort and personality, it’s the ideal piece for those who seek a cozy, free-spirited vibe in their living spaces.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "One seater").id,
-          ],
-          collection_id: collections.find((c) => c.handle === "boho-chic").id,
-          type_id: productTypes.find((pt) => pt.value === "Arm Chairs").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Boucle", "Linen"],
-            },
-            {
-              title: "Color",
-              values: ["Light Gray", "Yellow"],
-            },
-          ],
-          variants: [
-            {
-              title: "Boucle / Light Gray",
-              sku: "SAVANNAH-GROVE-BOUCLE-LIGHT-GRAY",
-              options: {
-                Material: "Boucle",
-                Color: "Light Gray",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 1200,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1400,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Linen / Yellow",
-              sku: "SAVANNAH-GROVE-LINEN-YELLOW",
-              options: {
-                Material: "Linen",
-                Color: "Yellow",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 900,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1100,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Linen / Light Gray",
-              sku: "SAVANNAH-GROVE-LINEN-LIGHT-GRAY",
-              options: {
-                Material: "Linen",
-                Color: "Light Gray",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 900,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 1100,
-                  currency_code: "usd",
-                },
-              ],
-            },
-          ],
-          sales_channels: [
-            {
-              id: defaultSalesChannel[0].id,
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
-        {
-          title: "Serena Meadow",
-          handle: "serena-meadow",
-          description:
-            "The Serena Meadow combines a classic silhouette with modern comfort, offering a relaxed yet polished look. Its soft upholstery and subtle curves bring a timeless elegance to any living room.",
-          category_ids: [
-            categoryResult.find((cat) => cat.name === "Two seater").id,
-          ],
-          collection_id: collections.find(
-            (c) => c.handle === "timeless-classics"
-          ).id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
-          status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
-            {
-              title: "Material",
-              values: ["Microfiber", "Velvet"],
-            },
-            {
-              title: "Color",
-              values: ["Black", "Dark Gray"],
-            },
-          ],
-          variants: [
-            {
-              title: "Microfiber / Black",
-              sku: "SERENA-MEADOW-MICROFIBER-BLACK",
-              options: {
-                Material: "Microfiber",
+                Size: "XL",
                 Color: "Black",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 1500,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 1700,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Microfiber / Dark Gray",
-              sku: "SERENA-MEADOW-MICROFIBER-DARK-GRAY",
+              title: "XL / White",
+              sku: "SHIRT-XL-WHITE",
               options: {
-                Material: "Microfiber",
-                Color: "Dark Gray",
+                Size: "XL",
+                Color: "White",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 2000,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 2200,
-                  currency_code: "usd",
-                },
-              ],
-            },
-            {
-              title: "Velvet / Black",
-              sku: "SERENA-MEADOW-VELVET-BLACK",
-              options: {
-                Material: "Velvet",
-                Color: "Black",
-              },
-              manage_inventory: false,
-              prices: [
-                {
-                  amount: 2000,
-                  currency_code: "eur",
-                },
-                {
-                  amount: 2200,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
@@ -1774,71 +514,95 @@ Perfect for creating a warm, inviting atmosphere that never goes out of style.`,
             },
           ],
         },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
         {
-          title: "Sutton Royale",
-          handle: "sutton-royale",
-          description:
-            "The Sutton Royale blends eclectic design with classic bohemian comfort, featuring soft, tufted fabric and a wide, welcoming frame. Its unique style adds a touch of vintage flair to any space.",
+          title: "Medusa Sweatshirt",
           category_ids: [
-            categoryResult.find((cat) => cat.name === "Two seater").id,
+            categoryResult.find((cat) => cat.name === "Sweatshirts")!.id,
           ],
-          collection_id: collections.find((c) => c.handle === "boho-chic").id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
+          description:
+            "Reimagine the feeling of a classic sweatshirt. With our cotton sweatshirt, everyday essentials no longer have to be ordinary.",
+          handle: "sweatshirt",
+          weight: 400,
           status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
+          images: [
             {
-              title: "Material",
-              values: ["Velvet", "Microfiber"],
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/sweatshirt-vintage-front.png",
             },
             {
-              title: "Color",
-              values: ["Purple", "Dark Gray"],
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/sweatshirt-vintage-back.png",
+            },
+          ],
+          options: [
+            {
+              title: "Size",
+              values: ["S", "M", "L", "XL"],
             },
           ],
           variants: [
             {
-              title: "Velvet / Purple",
-              sku: "SUTTON-ROYALE-VELVET-PURPLE",
+              title: "S",
+              sku: "SWEATSHIRT-S",
               options: {
-                Material: "Velvet",
-                Color: "Purple",
+                Size: "S",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 1500,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 1700,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Microfiber / Dark Gray",
-              sku: "SUTTON-ROYALE-MICROFIBER-DARK-GRAY",
+              title: "M",
+              sku: "SWEATSHIRT-M",
               options: {
-                Material: "Microfiber",
-                Color: "Dark Gray",
+                Size: "M",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 2000,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 2200,
+                  amount: 15,
+                  currency_code: "usd",
+                },
+              ],
+            },
+            {
+              title: "L",
+              sku: "SWEATSHIRT-L",
+              options: {
+                Size: "L",
+              },
+              prices: [
+                {
+                  amount: 10,
+                  currency_code: "eur",
+                },
+                {
+                  amount: 15,
+                  currency_code: "usd",
+                },
+              ],
+            },
+            {
+              title: "XL",
+              sku: "SWEATSHIRT-XL",
+              options: {
+                Size: "XL",
+              },
+              prices: [
+                {
+                  amount: 10,
+                  currency_code: "eur",
+                },
+                {
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
@@ -1850,71 +614,95 @@ Perfect for creating a warm, inviting atmosphere that never goes out of style.`,
             },
           ],
         },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
         {
-          title: "Velar Loft",
-          handle: "velar-loft",
-          description:
-            "The Velar Loft offers a refined blend of modern design and opulent comfort. Upholstered in rich fabric with sleek metallic accents, this sofa delivers both luxury and a contemporary edge, making it a striking centerpiece for sophisticated interiors.",
+          title: "Medusa Sweatpants",
           category_ids: [
-            categoryResult.find((cat) => cat.name === "One seater").id,
+            categoryResult.find((cat) => cat.name === "Pants")!.id,
           ],
-          collection_id: collections.find((c) => c.handle === "modern-luxe").id,
-          type_id: productTypes.find((pt) => pt.value === "Arm Chairs").id,
+          description:
+            "Reimagine the feeling of classic sweatpants. With our cotton sweatpants, everyday essentials no longer have to be ordinary.",
+          handle: "sweatpants",
+          weight: 400,
           status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
+          images: [
             {
-              title: "Material",
-              values: ["Velvet", "Microfiber"],
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/sweatpants-gray-front.png",
             },
             {
-              title: "Color",
-              values: ["Black", "Orange"],
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/sweatpants-gray-back.png",
+            },
+          ],
+          options: [
+            {
+              title: "Size",
+              values: ["S", "M", "L", "XL"],
             },
           ],
           variants: [
             {
-              title: "Velvet / Black",
-              sku: "VELAR-LOFT-VELVET-BLACK",
+              title: "S",
+              sku: "SWEATPANTS-S",
               options: {
-                Material: "Velvet",
-                Color: "Black",
+                Size: "S",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 1300,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 1500,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Microfiber / Orange",
-              sku: "VELAR-LOFT-MICROFIBER-ORANGE",
+              title: "M",
+              sku: "SWEATPANTS-M",
               options: {
-                Material: "Microfiber",
-                Color: "Orange",
+                Size: "M",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 1100,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 1300,
+                  amount: 15,
+                  currency_code: "usd",
+                },
+              ],
+            },
+            {
+              title: "L",
+              sku: "SWEATPANTS-L",
+              options: {
+                Size: "L",
+              },
+              prices: [
+                {
+                  amount: 10,
+                  currency_code: "eur",
+                },
+                {
+                  amount: 15,
+                  currency_code: "usd",
+                },
+              ],
+            },
+            {
+              title: "XL",
+              sku: "SWEATPANTS-XL",
+              options: {
+                Size: "XL",
+              },
+              prices: [
+                {
+                  amount: 10,
+                  currency_code: "eur",
+                },
+                {
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
@@ -1926,71 +714,95 @@ Perfect for creating a warm, inviting atmosphere that never goes out of style.`,
             },
           ],
         },
-      ],
-    },
-  });
-
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: [
         {
-          title: "Velora Luxe",
-          handle: "velora-luxe",
-          description:
-            "The Velora Luxe brings a touch of luxury to bohemian design with its bold patterns and plush comfort. Its oversized shape and inviting cushions make it an ideal centerpiece for laid-back, stylish interiors.",
+          title: "Medusa Shorts",
           category_ids: [
-            categoryResult.find((cat) => cat.name === "Three seater").id,
+            categoryResult.find((cat) => cat.name === "Merch")!.id,
           ],
-          collection_id: collections.find((c) => c.handle === "boho-chic").id,
-          type_id: productTypes.find((pt) => pt.value === "Sofas").id,
+          description:
+            "Reimagine the feeling of classic shorts. With our cotton shorts, everyday essentials no longer have to be ordinary.",
+          handle: "shorts",
+          weight: 400,
           status: ProductStatus.PUBLISHED,
-          images: [],
-          options: [
+          images: [
             {
-              title: "Material",
-              values: ["Linen", "Boucle"],
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/shorts-vintage-front.png",
             },
             {
-              title: "Color",
-              values: ["Yellow", "Light Gray"],
+              url: "https://medusa-public-images.s3.eu-west-1.amazonaws.com/shorts-vintage-back.png",
+            },
+          ],
+          options: [
+            {
+              title: "Size",
+              values: ["S", "M", "L", "XL"],
             },
           ],
           variants: [
             {
-              title: "Linen / Yellow",
-              sku: "VELORA-LUXE-LINEN-YELLOW",
+              title: "S",
+              sku: "SHORTS-S",
               options: {
-                Material: "Linen",
-                Color: "Yellow",
+                Size: "S",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 1500,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 1700,
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
             },
             {
-              title: "Boucle / Light Gray",
-              sku: "VELORA-LUXE-BOUCLE-LIGHT-GRAY",
+              title: "M",
+              sku: "SHORTS-M",
               options: {
-                Material: "Boucle",
-                Color: "Light Gray",
+                Size: "M",
               },
-              manage_inventory: false,
               prices: [
                 {
-                  amount: 2000,
+                  amount: 10,
                   currency_code: "eur",
                 },
                 {
-                  amount: 2200,
+                  amount: 15,
+                  currency_code: "usd",
+                },
+              ],
+            },
+            {
+              title: "L",
+              sku: "SHORTS-L",
+              options: {
+                Size: "L",
+              },
+              prices: [
+                {
+                  amount: 10,
+                  currency_code: "eur",
+                },
+                {
+                  amount: 15,
+                  currency_code: "usd",
+                },
+              ],
+            },
+            {
+              title: "XL",
+              sku: "SHORTS-XL",
+              options: {
+                Size: "XL",
+              },
+              prices: [
+                {
+                  amount: 10,
+                  currency_code: "eur",
+                },
+                {
+                  amount: 15,
                   currency_code: "usd",
                 },
               ],
@@ -2005,6 +817,30 @@ Perfect for creating a warm, inviting atmosphere that never goes out of style.`,
       ],
     },
   });
-
   logger.info("Finished seeding product data.");
+
+  logger.info("Seeding inventory levels.");
+
+  const { data: inventoryItems } = await query.graph({
+    entity: "inventory_item",
+    fields: ["id"],
+  });
+
+  const inventoryLevels: CreateInventoryLevelInput[] = [];
+  for (const inventoryItem of inventoryItems) {
+    const inventoryLevel = {
+      location_id: stockLocation.id,
+      stocked_quantity: 1000000,
+      inventory_item_id: inventoryItem.id,
+    };
+    inventoryLevels.push(inventoryLevel);
+  }
+
+  await createInventoryLevelsWorkflow(container).run({
+    input: {
+      inventory_levels: inventoryLevels,
+    },
+  });
+
+  logger.info("Finished seeding inventory levels data.");
 }
