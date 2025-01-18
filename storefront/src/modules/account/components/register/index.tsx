@@ -7,6 +7,7 @@ import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { signup } from "@lib/data/customer"
+import { useState } from "react"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
@@ -14,6 +15,42 @@ type Props = {
 
 const Register = ({ setCurrentView }: Props) => {
   const [message, formAction] = useActionState(signup, null)
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: ""
+  })
+  const [passwordError, setPasswordError] = useState("")
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+
+    // Clear password error when either password field changes
+    if (name === "password" || name === "confirmPassword") {
+      setPasswordError("")
+    }
+  }
+
+  const handleSubmit = (data: FormData) => {
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError("Passwords do not match")
+      return
+    }
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key !== "confirmPassword") {
+        data.set(key, value)
+      }
+    })
+    return formAction(data)
+  }
 
   return (
     <div
@@ -29,12 +66,14 @@ const Register = ({ setCurrentView }: Props) => {
           shopping experience.
         </p>
       </div>
-      <form className="w-full flex flex-col" action={formAction}>
+      <form className="w-full flex flex-col" action={handleSubmit}>
         <div className="flex flex-col w-full gap-y-2">
           <Input
             label="First name"
             name="first_name"
             required
+            value={formData.first_name}
+            onChange={handleChange}
             autoComplete="given-name"
             data-testid="first-name-input"
           />
@@ -42,6 +81,8 @@ const Register = ({ setCurrentView }: Props) => {
             label="Last name"
             name="last_name"
             required
+            value={formData.last_name}
+            onChange={handleChange}
             autoComplete="family-name"
             data-testid="last-name-input"
           />
@@ -50,6 +91,8 @@ const Register = ({ setCurrentView }: Props) => {
             name="email"
             required
             type="email"
+            value={formData.email}
+            onChange={handleChange}
             autoComplete="email"
             data-testid="email-input"
           />
@@ -57,6 +100,8 @@ const Register = ({ setCurrentView }: Props) => {
             label="Phone"
             name="phone"
             type="tel"
+            value={formData.phone}
+            onChange={handleChange}
             autoComplete="tel"
             data-testid="phone-input"
           />
@@ -65,10 +110,28 @@ const Register = ({ setCurrentView }: Props) => {
             name="password"
             required
             type="password"
+            value={formData.password}
+            onChange={handleChange}
             autoComplete="new-password"
             data-testid="password-input"
           />
+          <Input
+            label="Confirm Password"
+            name="confirmPassword"
+            required
+            type="password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            autoComplete="new-password"
+            error={passwordError}
+            data-testid="confirm-password-input"
+          />
         </div>
+        {passwordError && (
+          <div className="text-rose-500 text-small-regular mt-2">
+            {passwordError}
+          </div>
+        )}
         <ErrorMessage error={message} data-testid="register-error" />
         <span className="text-small-regular text-ui-fg-base">
           By creating an account, you agree to ChezScheyda&apos;s{" "}
