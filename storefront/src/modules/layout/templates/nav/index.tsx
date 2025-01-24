@@ -5,9 +5,12 @@ import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
+import { retrieveCustomer } from "@lib/data/customer"
 
 export default async function Nav() {
   const regions = await listRegions().then((regions: StoreRegion[]) => regions)
+
+  const customer = await retrieveCustomer()
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
@@ -36,7 +39,7 @@ export default async function Nav() {
                 href="/account"
                 data-testid="nav-account-link"
               >
-                Mon Compte
+                {customer ? "Mon Compte" : "Se Connecter"}
               </LocalizedClientLink>
             </div>
             <Suspense
