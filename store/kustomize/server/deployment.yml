@@ -22,8 +22,8 @@ spec:
             - containerPort: 3000
           resources:
             limits:
-              cpu: 300m
-              memory: 800Mi
+              cpu: 600m
+              memory: 100Mi
           envFrom:
             - secretRef:
                 name: managed-secret-server
