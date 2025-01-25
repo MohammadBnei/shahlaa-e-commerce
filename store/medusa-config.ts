@@ -24,7 +24,52 @@ module.exports = defineConfig({
       | "worker"
       | "server",
   },
+  plugins: [
+    {
+      resolve: "medusa-plugin-smtp",
+      options: {
+        fromEmail: process.env.SMTP_SENDER_ADDRESS,
+        transport: {
+          host: process.env.SMTP_HOST,
+          port: process.env.SMTP_PORT,
+          secureConnection: true,
+          auth: {
+            user: process.env.SMTP_SENDER_ADDRESS,
+            pass: process.env.SMTP_SENDER_PASS,
+          },
+          requireTLS: true,
+        },
+        emailTemplatePath: "data/emailTemplates",
+        templateMap: {
+          // "eventname": "templatename",
+          "order.placed": "orderplaced",
+          "customer.password_reset": "passwordreset",
+        },
+      },
+    },
+  ],
   modules: [
+    {
+      resolve: "@medusajs/medusa/cache-redis",
+      options: {
+        redisUrl: process.env.REDIS_URL,
+      },
+    },
+    {
+      resolve: "@medusajs/medusa/event-bus-redis",
+      options: {
+        redisUrl: process.env.REDIS_URL,
+      },
+    },
+    {
+      resolve: "@medusajs/medusa/workflow-engine-redis",
+      options: {
+        redis: {
+          url: process.env.REDIS_URL,
+        },
+      },
+    },
+
     {
       resolve: "@medusajs/medusa/payment",
       options: {
@@ -40,9 +85,7 @@ module.exports = defineConfig({
         ],
       },
     },
-    {
-      resolve: "./src/modules/fashion",
-    },
+
     // {
     //   resolve: "@medusajs/medusa/file",
     //   options: {

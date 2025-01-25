@@ -1,6 +1,6 @@
 {
   "name": "medusa-server",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "A starter for Medusa projects.",
   "author": "Medusa (https://medusajs.com)",
   "license": "MIT",
@@ -33,7 +33,11 @@
     "@mikro-orm/migrations": "5.9.8",
     "@mikro-orm/postgresql": "5.9.8",
     "awilix": "^8.0.1",
+    "email-templates": "^12.0.1",
+    "medusa-plugin-smtp": "^1.2.0",
     "pg": "^8.13.1",
+    "preview-email": "^3.1.0",
+    "pug": "^3.0.3",
     "react-dropzone": "^14.3.5"
   },
   "devDependencies": {
